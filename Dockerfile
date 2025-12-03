@@ -22,7 +22,10 @@ COPY requirements.txt .
 
 # (선택) 중국 Tsinghua 미러를 쓰면 Paddle 관련 설치가 더 안정적인 경우도 있음.
 # 필요 없으면 -i 부분은 삭제해도 됩니다.
-RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+# RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 변경 후 (기본 PyPI 사용)
+RUN pip install --no-cache-dir -r requirements.txt
 
 # 애플리케이션 코드 복사
 COPY server.py .
