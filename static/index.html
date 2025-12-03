@@ -1,226 +1,357 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Smart OCR Cropper</title>
-  <style>
-    :root {
-      --primary: #3b82f6;
-      --bg: #f3f4f6;
-      --text: #1f2937;
-      --card-bg: #ffffff;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Smart OCR Cropper</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --bg: #f3f4f6;
+            --text: #1f2937;
+            --card-bg: #ffffff;
+        }
 
-    * { box-sizing: border-box; }
-    
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      margin: 0;
-      padding: 16px;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-    }
+        * {
+            box-sizing: border-box;
+        }
 
-    h1 { font-size: 1.25rem; margin: 0 0 16px 0; text-align: center; color: #111827; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 16px;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
 
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+        h1 {
+            font-size: 1.25rem;
+            margin: 0 0 16px 0;
+            text-align: center;
+            color: #111827;
+        }
 
-    .card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
 
-    .controls {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
 
-    .file-input-wrapper {
-      position: relative;
-      overflow: hidden;
-      display: inline-block;
-      width: 100%;
-    }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
 
-    .file-input-wrapper input[type=file] {
-      font-size: 100px;
-      position: absolute;
-      left: 0;
-      top: 0;
-      opacity: 0;
-      cursor: pointer;
-    }
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
 
-    .btn {
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      width: 100%;
-      font-size: 0.95rem;
-      transition: background 0.2s;
-    }
+        .file-input-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
 
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:active { background: #2563eb; }
-    .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
+        .btn {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
 
-    .btn-outline { 
-      background: white; border: 1px solid #d1d5db; color: #374151; 
-      margin-top: 8px;
-    }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
 
-    select {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-      background: white;
-      font-size: 1rem;
-    }
+        .btn-primary:active {
+            background: #2563eb;
+        }
 
-    /* Canvas Wrapper */
-    #canvasWrapper {
-      position: relative;
-      width: 100%;
-      background: #e5e7eb;
-      border-radius: 8px;
-      overflow: hidden;
-      min-height: 200px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      touch-action: none; /* 모바일에서 드래그 시 스크롤 방지 */
-    }
+        .btn-primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
 
-    #imageCanvas {
-      max-width: 100%;
-      height: auto; /* 비율 유지하며 화면에 맞춤 */
-      display: block;
-      cursor: crosshair;
-    }
+        .btn-outline {
+            background: white;
+            border: 1px solid #d1d5db;
+            color: #374151;
+            margin-top: 8px;
+        }
 
-    .placeholder-text {
-      color: #6b7280;
-      text-align: center;
-      font-size: 0.9rem;
-      pointer-events: none;
-    }
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: white;
+            font-size: 1rem;
+        }
 
-    /* Results */
-    .result-box {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 12px;
-      min-height: 60px;
-      white-space: pre-wrap;
-      font-size: 0.95rem;
-      position: relative;
-    }
+        /* Canvas Wrapper */
+        #canvasWrapper {
+            position: relative;
+            width: 100%;
+            background: #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+            /* 모바일에서 드래그 시 스크롤 방지 */
+        }
 
-    .status {
-      font-size: 0.85rem;
-      text-align: right;
-      margin-top: 4px;
-      min-height: 20px;
-    }
-    .status.error { color: #dc2626; }
-    .status.success { color: #059669; }
+        #imageCanvas {
+            max-width: 100%;
+            height: auto;
+            /* 비율 유지하며 화면에 맞춤 */
+            display: block;
+            cursor: crosshair;
+        }
 
-    /* Loading Spinner */
-    .spinner {
-      display: none;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,0.3);
-      border-radius: 50%;
-      border-top-color: white;
-      animation: spin 1s ease-in-out infinite;
-      margin-right: 8px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+        .placeholder-text {
+            color: #6b7280;
+            text-align: center;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
 
-    details { margin-top: 10px; }
-    summary { cursor: pointer; color: #4b5563; font-size: 0.85rem; }
-    pre { font-size: 0.75rem; background: #1f2937; color: #fff; padding: 10px; border-radius: 6px; overflow-x: auto;}
+        /* Results */
+        .result-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            min-height: 60px;
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+            position: relative;
+        }
 
-    @media (min-width: 640px) {
-      .container { flex-direction: row; align-items: flex-start; }
-      .left-col { flex: 2; }
-      .right-col { flex: 1; position: sticky; top: 16px; }
-    }
-  </style>
+        .status {
+            font-size: 0.85rem;
+            text-align: right;
+            margin-top: 4px;
+            min-height: 20px;
+        }
+
+        .status.error {
+            color: #dc2626;
+        }
+
+        .status.success {
+            color: #059669;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        details {
+            margin-top: 10px;
+        }
+
+        summary {
+            cursor: pointer;
+            color: #4b5563;
+            font-size: 0.85rem;
+        }
+
+        pre {
+            font-size: 0.75rem;
+            background: #1f2937;
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+
+        @media (min-width: 640px) {
+            .container {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+
+            .left-col {
+                flex: 2;
+            }
+
+            .right-col {
+                flex: 1;
+                position: sticky;
+                top: 16px;
+            }
+        }
+
+        /* 카메라 모달 스타일 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            display: none;
+            /* 기본 숨김 */
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .camera-box {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            max-width: 90%;
+            width: 640px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            background: #000;
+            border-radius: 8px;
+            /* OCR용이므로 좌우 반전(거울 모드) 하지 않음 */
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+    </style>
 </head>
+
 <body>
 
-<div class="container">
-  <div class="card left-col">
-    <h1>📷 OCR 영역 선택</h1>
-    
-    <div id="canvasWrapper">
-      <div class="placeholder-text" id="placeholder">
-        이미지를 선택하거나<br>여기로 드래그하세요
-      </div>
-      <canvas id="imageCanvas"></canvas>
+    <div class="container">
+        <div class="card left-col">
+            <h1>📷 OCR 영역 선택</h1>
+
+            <div id="canvasWrapper">
+                <div class="placeholder-text" id="placeholder">
+                    이미지를 선택하거나<br>여기로 드래그하세요
+                </div>
+                <canvas id="imageCanvas"></canvas>
+            </div>
+            <div style="font-size: 0.8rem; color: #6b7280; margin-top: 6px; text-align: center;">
+                이미지를 터치(드래그)하여 영역을 지정하세요.
+            </div>
+        </div>
+
+        <div class="right-col" style="display: flex; flex-direction: column; gap: 16px;">
+
+            <div class="card controls">
+
+                <div style="display: flex; gap: 10px;">
+                    <div class="file-input-wrapper" style="flex: 1;">
+                        <button class="btn btn-outline" onclick="document.getElementById('inputGallery').click()">📂
+                            파일/앨범</button>
+                        <input type="file" id="inputGallery" accept="image/*" style="display:none" />
+                    </div>
+
+                    <div class="file-input-wrapper" style="flex: 1;">
+                        <button class="btn btn-outline" id="btnSmartCamera">📷 카메라</button>
+
+                        <input type="file" id="inputNativeCamera" accept="image/*" capture="environment"
+                            style="display:none" />
+                    </div>
+                </div>
+
+            </div>
+
+            <select id="langSelect">
+                <option value="korean">🇰🇷 한국어 (Korean)</option>
+                <option value="en">🇺🇸 영어 (English)</option>
+                <option value="japan">🇯🇵 일본어 (Japanese)</option>
+                <option value="ch">🇨🇳 중국어 (Chinese)</option>
+            </select>
+
+            <button id="runOcrButton" class="btn btn-primary" disabled>
+                <div class="spinner" id="loadingSpinner"></div>
+                <span>텍스트 추출하기</span>
+            </button>
+            <div id="statusMessage" class="status"></div>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-weight: 600;">추출 결과</span>
+                <button id="copyBtn"
+                    style="font-size: 0.8rem; border:none; background:none; color:var(--primary); cursor:pointer;">복사하기</button>
+            </div>
+            <div id="ocrText" class="result-box" placeholder="결과가 여기에 표시됩니다."></div>
+
+            <details>
+                <summary>개발자용 원본 데이터 (JSON)</summary>
+                <div id="ocrRaw"></div>
+            </details>
+        </div>
     </div>
-    <div style="font-size: 0.8rem; color: #6b7280; margin-top: 6px; text-align: center;">
-      이미지를 터치(드래그)하여 영역을 지정하세요.
-    </div>
-  </div>
-
-  <div class="right-col" style="display: flex; flex-direction: column; gap: 16px;">
-    
-    <div class="card controls">
-      <div class="file-input-wrapper">
-        <button class="btn btn-outline">📂 이미지 불러오기</button>
-        <input type="file" id="imageInput" accept="image/*" />
-      </div>
-
-      <select id="langSelect">
-        <option value="korean">🇰🇷 한국어 (Korean)</option>
-        <option value="en">🇺🇸 영어 (English)</option>
-        <option value="japan">🇯🇵 일본어 (Japanese)</option>
-        <option value="ch">🇨🇳 중국어 (Chinese)</option>
-      </select>
-
-      <button id="runOcrButton" class="btn btn-primary" disabled>
-        <div class="spinner" id="loadingSpinner"></div>
-        <span>텍스트 추출하기</span>
-      </button>
-      <div id="statusMessage" class="status"></div>
     </div>
 
-    <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <span style="font-weight: 600;">추출 결과</span>
-        <button id="copyBtn" style="font-size: 0.8rem; border:none; background:none; color:var(--primary); cursor:pointer;">복사하기</button>
-      </div>
-      <div id="ocrText" class="result-box" placeholder="결과가 여기에 표시됩니다."></div>
-      
-      <details>
-        <summary>개발자용 원본 데이터 (JSON)</summary>
-        <div id="ocrRaw"></div>
-      </details>
+    <div id="cameraModal" class="modal-overlay">
+        <div class="camera-box">
+            <h3 style="margin:0 0 8px 0; text-align:center;">웹캠 촬영</h3>
+            <video id="webcamVideo" autoplay playsinline></video>
+            <div class="camera-controls">
+                <button class="btn btn-primary" id="btnSnap">📸 촬영</button>
+                <button class="btn btn-outline" id="btnCloseCamera">❌ 닫기</button>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
-
-<script src="/static/script.js"></script>
+    <script src="/static/script.js"></script>
 </body>
+
 </html>
