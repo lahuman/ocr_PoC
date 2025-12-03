@@ -168,22 +168,35 @@ imageInput.addEventListener("change", (e) => {
 });
 
 
-// 6. OCR 실행
+// 6. OCR 실행 (대기열 UX 강화)
 runOcrButton.addEventListener("click", async () => {
   if (!currentFile) return;
 
-  // 선택 영역 없으면 전체 영역 사용
+  // 선택 영역 보정
   let finalSel = selection;
   if (selection.w < 1 || selection.h < 1) {
     finalSel = { x: 0, y: 0, w: canvas.width, h: canvas.height };
   }
 
-  // UI 상태 변경 (로딩 중)
+  // UI 초기화
   runOcrButton.disabled = true;
   loadingSpinner.style.display = "inline-block";
-  statusMessage.textContent = "서버에서 텍스트 인식 중...";
   statusMessage.className = "status";
   ocrText.textContent = "";
+  
+  // [UX] 처리 시간이 길어지면 메시지를 변경하는 타이머
+  statusMessage.textContent = "서버 전송 중...";
+  
+  // 2초 이상 걸리면 "대기 중" 메시지로 변경 (큐에 걸린 것으로 추정)
+  const waitTimer = setTimeout(() => {
+    statusMessage.textContent = "현재 요청이 많아 대기 중입니다... (순차 처리)";
+  }, 2000);
+
+  // 10초 이상 걸리면 추가 안내
+  const longWaitTimer = setTimeout(() => {
+    statusMessage.textContent = "처리가 지연되고 있습니다. 잠시만 더 기다려주세요...";
+  }, 10000);
+
 
   const formData = new FormData();
   formData.append("image", currentFile);
@@ -199,11 +212,14 @@ runOcrButton.addEventListener("click", async () => {
       body: formData
     });
 
+    // 응답이 오면 타이머 해제
+    clearTimeout(waitTimer);
+    clearTimeout(longWaitTimer);
+
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.error || "서버 오류");
 
-    // 성공 처리
     statusMessage.textContent = `완료! (${data.lang_label || data.lang})`;
     statusMessage.className = "status success";
     
@@ -211,6 +227,9 @@ runOcrButton.addEventListener("click", async () => {
     ocrRaw.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
 
   } catch (err) {
+    clearTimeout(waitTimer);
+    clearTimeout(longWaitTimer);
+    
     console.error(err);
     statusMessage.textContent = "에러: " + err.message;
     statusMessage.className = "status error";
@@ -220,7 +239,6 @@ runOcrButton.addEventListener("click", async () => {
     loadingSpinner.style.display = "none";
   }
 });
-
 // [수정된 부분] 7. 복사 기능 (호환성 강화)
 function copyToClipboard(text) {
   // 1. 최신 방식 (HTTPS / Localhost)

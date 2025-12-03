@@ -1,8 +1,14 @@
 fastapi>=0.109.0
 uvicorn>=0.27.0
 python-multipart
-paddlepaddle==2.6.1
-paddleocr>=2.7.3
+# 라즈베리파이 호환성을 위해 2.x 버전 고정
+paddlepaddle==2.6.2
+# 중요: Paddle 2.x와 호환되는 마지막 안정 버전
+paddleocr==2.7.3
+# OpenCV GUI 의존성 제거 (서버/라즈베리파이용)
+opencv-python-headless
+# Paddle 호환성을 위해 Numpy 1.x 유지
 numpy<2.0.0
 Pillow
 python-dateutil
+matplotlib
