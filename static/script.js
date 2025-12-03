@@ -97,20 +97,6 @@ btnSnap.addEventListener("click", () => {
 if (btnCloseCamera) {
     btnCloseCamera.addEventListener("click", closeWebcamModal);
 }
-if (btnSnap) {
-    btnSnap.addEventListener("click", () => {
-        closeWebcamModal()
-    });
-}
-if (btnSmartCamera) {
-    btnSmartCamera.addEventListener("click", () => {
-        if (isMobileDevice()) {
-            inputNativeCamera.click();
-        } else {
-            openWebcamModal();
-        }
-    });
-}
 
 // State
 let currentImage = null;   // Image Object
