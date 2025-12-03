@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>영역 선택 OCR (PaddleOCR)</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      margin-bottom: 8px;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .row {
+      margin-bottom: 10px;
+    }
+    label {
+      display: inline-block;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    input[type="file"] {
+      margin-top: 4px;
+    }
+    select {
+      padding: 4px 8px;
+      margin-left: 8px;
+    }
+    button {
+      padding: 8px 16px;
+      border-radius: 4px;
+      border: none;
+      background: #2563eb;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #9ca3af;
+      cursor: default;
+    }
+    #canvasWrapper {
+      border: 1px solid #e5e7eb;
+      background: #111;
+      display: inline-block;
+      position: relative;
+      max-width: 100%;
+    }
+    #imageCanvas {
+      display: block;
+      max-width: 100%;
+    }
+    #selectionInfo {
+      font-size: 12px;
+      color: #4b5563;
+      margin-top: 4px;
+    }
+    pre {
+      background: #f9fafb;
+      padding: 8px;
+      border-radius: 4px;
+      max-height: 260px;
+      overflow: auto;
+      font-size: 12px;
+    }
+    .result-text {
+      white-space: pre-wrap;
+      font-family: "Noto Sans KR", system-ui, sans-serif;
+    }
+    .error {
+      color: #b91c1c;
+      font-weight: 600;
+    }
+    .success {
+      color: #166534;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>영역 선택 OCR (PaddleOCR)</h1>
+  <p>이미지를 업로드하고, 숫자/텍스트 영역을 드래그로 선택한 후 OCR을 실행합니다.</p>
+
+  <div class="card">
+    <h2>1. 이미지 업로드 & 영역 선택</h2>
+    <div class="row">
+      <label for="imageInput">이미지 파일:</label>
+      <input type="file" id="imageInput" accept="image/*" />
+    </div>
+
+    <div class="row">
+      <label for="langSelect">언어:</label>
+      <select id="langSelect">
+        <option value="korean">한국어 (korean)</option>
+        <option value="en">영어 (en)</option>
+        <option value="ch">중국어 (ch)</option>
+        <option value="japan">일본어 (japan)</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <div id="canvasWrapper">
+        <canvas id="imageCanvas"></canvas>
+      </div>
+      <div id="selectionInfo">영역을 드래그하여 선택하세요.</div>
+    </div>
+
+    <div class="row">
+      <button id="runOcrButton" disabled>선택 영역 OCR 실행</button>
+      <span id="statusMessage" style="margin-left:8px;"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. OCR 결과</h2>
+    <div class="row">
+      <div><b>인식된 텍스트 (full_text):</b></div>
+      <div id="ocrText" class="result-text"></div>
+    </div>
+    <div class="row">
+      <div><b>원시 응답(JSON):</b></div>
+      <div id="ocrRaw"></div>
+    </div>
+  </div>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
