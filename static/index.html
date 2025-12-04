@@ -7,179 +7,248 @@
     <title>Smart OCR Cropper</title>
     <style>
         :root {
-            --primary: #3b82f6;
-            --bg: #f3f4f6;
-            --text: #1f2937;
-            --card-bg: #ffffff;
+            --primary: #2563eb;
+            /* 더 진한 블루 */
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            /* 아주 연한 블루그레이 배경 */
+            --surface: #ffffff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         * {
             box-sizing: border-box;
+            outline: none;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, sans-serif;
             margin: 0;
-            padding: 16px;
+            padding: 20px;
             background: var(--bg);
-            color: var(--text);
-            line-height: 1.5;
+            color: var(--text-main);
+            line-height: 1.6;
         }
 
         h1 {
-            font-size: 1.25rem;
-            margin: 0 0 16px 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 24px 0;
             text-align: center;
-            color: #111827;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1000px;
+            /* 너비 확장 */
             margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* 카드 공통 스타일 */
+        .card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        /* Canvas 영역 스타일 개선 */
+        #canvasWrapper {
+            position: relative;
+            width: 100%;
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+            /* 점선 테두리 */
+            border-radius: 12px;
+            overflow: hidden;
+            min-height: 300px;
+            /* 높이 확보 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+            transition: border-color 0.2s;
+        }
+
+        #canvasWrapper:hover {
+            border-color: var(--primary);
+        }
+
+        #imageCanvas {
+            max-width: 100%;
+            height: auto;
+            display: none;
+            cursor: crosshair;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            /* 이미지 그림자 */
+        }
+
+        .placeholder-text {
+            color: var(--text-sub);
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 500;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .placeholder-text::before {
+            content: '🖼️';
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        /* 버튼 및 컨트롤 스타일 */
+        .controls-group {
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
 
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .controls {
+        .btn-group {
             display: flex;
-            flex-direction: column;
             gap: 12px;
-        }
-
-        .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .file-input-wrapper input[type=file] {
-            font-size: 100px;
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            cursor: pointer;
         }
 
         .btn {
             display: inline-flex;
             justify-content: center;
             align-items: center;
-            padding: 12px 20px;
-            border-radius: 8px;
+            padding: 14px 20px;
+            border-radius: 10px;
             font-weight: 600;
-            border: none;
-            cursor: pointer;
-            width: 100%;
             font-size: 0.95rem;
-            transition: background 0.2s;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            width: 100%;
         }
 
         .btn-primary {
             background: var(--primary);
             color: white;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
         }
 
-        .btn-primary:active {
-            background: #2563eb;
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
         }
 
         .btn-primary:disabled {
-            background: #9ca3af;
+            background: #94a3b8;
             cursor: not-allowed;
+            box-shadow: none;
         }
 
         .btn-outline {
             background: white;
-            border: 1px solid #d1d5db;
-            color: #374151;
-            margin-top: 8px;
+            border: 1px solid #cbd5e1;
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
         }
 
         select {
             width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #d1d5db;
+            padding: 14px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
             background: white;
             font-size: 1rem;
+            color: var(--text-main);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 16px;
         }
 
-        /* Canvas Wrapper */
-        #canvasWrapper {
-            position: relative;
-            width: 100%;
-            background: #e5e7eb;
-            border-radius: 8px;
-            overflow: hidden;
-            min-height: 200px;
+        /* 결과 영역 스타일 */
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+
+        .result-title {
+            font-weight: 700;
+            color: var(--text-main);
             display: flex;
             align-items: center;
-            justify-content: center;
-            touch-action: none;
-            /* 모바일에서 드래그 시 스크롤 방지 */
+            gap: 6px;
         }
 
-        #imageCanvas {
-            max-width: 100%;
-            height: auto;
-            /* 비율 유지하며 화면에 맞춤 */
-            display: block;
-            cursor: crosshair;
+        .copy-btn {
+            font-size: 0.85rem;
+            color: var(--primary);
+            background: rgba(37, 99, 235, 0.1);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
         }
 
-        .placeholder-text {
-            color: #6b7280;
-            text-align: center;
-            font-size: 0.9rem;
-            pointer-events: none;
+        .copy-btn:hover {
+            background: rgba(37, 99, 235, 0.2);
         }
 
-        /* Results */
         .result-box {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
+            background: #f8fafc;
+            border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 12px;
-            min-height: 60px;
+            padding: 16px;
+            min-height: 100px;
             white-space: pre-wrap;
-            font-size: 0.95rem;
-            position: relative;
+            font-size: 1rem;
+            color: #334155;
+            line-height: 1.6;
         }
 
         .status {
-            font-size: 0.85rem;
-            text-align: right;
-            margin-top: 4px;
-            min-height: 20px;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: 500;
+            min-height: 24px;
         }
 
         .status.error {
-            color: #dc2626;
+            color: #ef4444;
         }
 
         .status.success {
-            color: #059669;
+            color: #10b981;
         }
 
-        /* Loading Spinner */
+        /* 로딩 스피너 개선 */
         .spinner {
             display: none;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
+            animation: spin 0.8s linear infinite;
             margin-right: 8px;
         }
 
@@ -189,26 +258,92 @@
             }
         }
 
+        /* JSON Details 스타일 */
         details {
-            margin-top: 10px;
+            margin-top: 16px;
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
         }
 
         summary {
             cursor: pointer;
-            color: #4b5563;
-            font-size: 0.85rem;
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            font-weight: 600;
+            list-style: none;
+            /* 기본 화살표 제거 */
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        summary::before {
+            content: '▶';
+            font-size: 0.7rem;
+            transition: transform 0.2s;
+        }
+
+        details[open] summary::before {
+            transform: rotate(90deg);
         }
 
         pre {
-            font-size: 0.75rem;
-            background: #1f2937;
-            color: #fff;
-            padding: 10px;
-            border-radius: 6px;
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
             overflow-x: auto;
+            margin-top: 10px;
         }
 
-        @media (min-width: 640px) {
+        /* 카메라 모달 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            /* 더 어둡게 */
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+            /* 배경 블러 효과 */
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .camera-box {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        video {
+            width: 100%;
+            border-radius: 12px;
+            background: #000;
+        }
+
+        .camera-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* 반응형 레이아웃 */
+        @media (min-width: 768px) {
             .container {
                 flex-direction: row;
                 align-items: flex-start;
@@ -221,54 +356,9 @@
             .right-col {
                 flex: 1;
                 position: sticky;
-                top: 16px;
+                top: 20px;
+                min-width: 300px;
             }
-        }
-
-        /* 카메라 모달 스타일 */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 9999;
-            display: none;
-            /* 기본 숨김 */
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .camera-box {
-            background: white;
-            padding: 16px;
-            border-radius: 12px;
-            max-width: 90%;
-            width: 640px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            position: relative;
-        }
-
-        video {
-            width: 100%;
-            height: auto;
-            background: #000;
-            border-radius: 8px;
-            /* OCR용이므로 좌우 반전(거울 모드) 하지 않음 */
-        }
-
-        .camera-controls {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
         }
     </style>
 </head>
@@ -326,12 +416,11 @@
         </div>
 
         <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <span style="font-weight: 600;">추출 결과</span>
-                <button id="copyBtn"
-                    style="font-size: 0.8rem; border:none; background:none; color:var(--primary); cursor:pointer;">복사하기</button>
+            <div class="result-header">
+                <div class="result-title">📝 추출 결과</div>
+                <button id="copyBtn" class="copy-btn">복사하기</button>
             </div>
-            <div id="ocrText" class="result-box" placeholder="결과가 여기에 표시됩니다."></div>
+            <div id="ocrText" class="result-box">결과가 여기에 표시됩니다.</div>
 
             <details>
                 <summary>개발자용 원본 데이터 (JSON)</summary>

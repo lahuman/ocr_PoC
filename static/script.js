@@ -216,44 +216,60 @@ canvas.addEventListener("touchstart", handleStart, { passive: false });
 canvas.addEventListener("touchmove", handleMove, { passive: false });
 canvas.addEventListener("touchend", handleEnd);
 
+// [수정 전] 기존 handleFileSelect 함수가 있던 자리...
+// [수정 후] 아래와 같이 processFile 함수를 새로 만들고, handleFileSelect에서 이를 호출하도록 변경
 
-// 2) 공통 파일 처리 함수
+// 1) 공통 이미지 처리 함수 (새로 추가)
+function processFile(file) {
+    if (!file) return;
+
+    currentFile = file;
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+            currentImage = img;
+
+            // 캔버스 크기를 이미지 원본 크기로 맞춤
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            canvas.style.display = 'block';
+            placeholder.style.display = 'none';
+
+            // 초기화: 선택 영역 없음
+            selection = { x: 0, y: 0, w: 0, h: 0 };
+
+            redraw();
+            
+            // 버튼 활성화 및 상태 초기화
+            if (runOcrButton) runOcrButton.disabled = false;
+            if (statusMessage) {
+                statusMessage.textContent = "";
+                statusMessage.className = "status";
+            }
+
+            // 스크롤 이동
+            if (canvasWrapper) {
+                canvasWrapper.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+        };
+        img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+// 2) 파일 선택 이벤트 핸들러 (수정됨)
 function handleFileSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
 
   // 같은 파일을 다시 선택해도 이벤트가 발생하도록 값 초기화
   e.target.value = '';
-
-  currentFile = file;
-  const reader = new FileReader();
   
-  reader.onload = (event) => {
-    const img = new Image();
-    img.onload = () => {
-      currentImage = img;
-      
-      // 캔버스 크기를 이미지 원본 크기로 맞춤
-      canvas.width = img.width;
-      canvas.height = img.height;
-      
-      canvas.style.display = 'block';
-      placeholder.style.display = 'none';
-      
-      // 초기화: 선택 영역 없음
-      selection = { x: 0, y: 0, w: 0, h: 0 };
-      
-      redraw();
-      runOcrButton.disabled = false;
-      statusMessage.textContent = "";
-      statusMessage.className = "status";
-      
-      // 스크롤 이동
-      canvasWrapper.scrollIntoView({ behavior: "smooth", block: "center" });
-    };
-    img.src = event.target.result;
-  };
-  reader.readAsDataURL(file);
+  // 공통 함수 호출
+  processFile(file);
 }
 
 
