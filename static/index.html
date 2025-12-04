@@ -8,10 +8,8 @@
     <style>
         :root {
             --primary: #2563eb;
-            /* 더 진한 블루 */
             --primary-hover: #1d4ed8;
             --bg: #f8fafc;
-            /* 아주 연한 블루그레이 배경 */
             --surface: #ffffff;
             --text-main: #1e293b;
             --text-sub: #64748b;
@@ -42,16 +40,15 @@
             letter-spacing: -0.5px;
         }
 
+        /* [변경] 컨테이너 너비를 95%로 확장하여 PC 화면 활용도 극대화 */
         .container {
-            max-width: 1000px;
-            /* 너비 확장 */
+            max-width: 95%; /* 기존 1000px -> 95% */
             margin: 0 auto;
             display: flex;
             flex-direction: column;
             gap: 24px;
         }
 
-        /* 카드 공통 스타일 */
         .card {
             background: var(--surface);
             border-radius: 16px;
@@ -60,26 +57,30 @@
             border: 1px solid var(--border);
         }
 
-        /* Canvas 영역 스타일 개선 */
         #canvasWrapper {
             position: relative;
             width: 100%;
             background: #f1f5f9;
             border: 2px dashed #cbd5e1;
-            /* 점선 테두리 */
             border-radius: 12px;
             overflow: hidden;
-            min-height: 300px;
-            /* 높이 확보 */
+            min-height: 400px; /* [변경] 기본 높이를 좀 더 확보 (300 -> 400px) */
             display: flex;
             align-items: center;
             justify-content: center;
             touch-action: none;
-            transition: border-color 0.2s;
+            transition: all 0.2s ease; /* 애니메이션 효과 추가 */
         }
 
         #canvasWrapper:hover {
             border-color: var(--primary);
+        }
+
+        /* [추가] 드래그 앤 드롭 활성화 시 스타일 */
+        #canvasWrapper.drag-over {
+            border-color: var(--primary);
+            background-color: rgba(37, 99, 235, 0.05); /* 연한 파란색 배경 */
+            transform: scale(1.01);
         }
 
         #imageCanvas {
@@ -88,7 +89,6 @@
             display: none;
             cursor: crosshair;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            /* 이미지 그림자 */
         }
 
         .placeholder-text {
@@ -109,7 +109,6 @@
             margin-bottom: 8px;
         }
 
-        /* 버튼 및 컨트롤 스타일 */
         .controls-group {
             display: flex;
             flex-direction: column;
@@ -178,7 +177,6 @@
             background-size: 16px;
         }
 
-        /* 결과 영역 스타일 */
         .result-header {
             display: flex;
             justify-content: space-between;
@@ -232,15 +230,9 @@
             min-height: 24px;
         }
 
-        .status.error {
-            color: #ef4444;
-        }
+        .status.error { color: #ef4444; }
+        .status.success { color: #10b981; }
 
-        .status.success {
-            color: #10b981;
-        }
-
-        /* 로딩 스피너 개선 */
         .spinner {
             display: none;
             width: 18px;
@@ -252,13 +244,8 @@
             margin-right: 8px;
         }
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* JSON Details 스타일 */
         details {
             margin-top: 16px;
             border-top: 1px solid var(--border);
@@ -271,7 +258,6 @@
             font-size: 0.9rem;
             font-weight: 600;
             list-style: none;
-            /* 기본 화살표 제거 */
             display: flex;
             align-items: center;
             gap: 6px;
@@ -297,7 +283,6 @@
             margin-top: 10px;
         }
 
-        /* 카메라 모달 */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -305,18 +290,14 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.8);
-            /* 더 어둡게 */
             z-index: 9999;
             display: none;
             justify-content: center;
             align-items: center;
             backdrop-filter: blur(4px);
-            /* 배경 블러 효과 */
         }
 
-        .modal-overlay.active {
-            display: flex;
-        }
+        .modal-overlay.active { display: flex; }
 
         .camera-box {
             background: white;
@@ -342,22 +323,22 @@
             gap: 12px;
         }
 
-        /* 반응형 레이아웃 */
         @media (min-width: 768px) {
             .container {
                 flex-direction: row;
                 align-items: flex-start;
             }
 
+            /* [변경] PC 화면에서 캔버스 영역 비율 확대 (flex 2 -> 4) */
             .left-col {
-                flex: 2;
+                flex: 4; 
             }
 
             .right-col {
                 flex: 1;
                 position: sticky;
                 top: 20px;
-                min-width: 300px;
+                min-width: 320px; /* 컨트롤 영역 최소 너비 확보 */
             }
         }
     </style>
@@ -383,7 +364,6 @@
         <div class="right-col" style="display: flex; flex-direction: column; gap: 16px;">
 
             <div class="card controls">
-
                 <div style="display: flex; gap: 10px;">
                     <div class="file-input-wrapper" style="flex: 1;">
                         <button class="btn btn-outline" onclick="document.getElementById('inputGallery').click()">📂
@@ -393,12 +373,9 @@
 
                     <div class="file-input-wrapper" style="flex: 1;">
                         <button class="btn btn-outline" id="btnSmartCamera">📷 카메라</button>
-
-                        <input type="file" id="inputNativeCamera" accept="image/*" capture="environment"
-                            style="display:none" />
+                        <input type="file" id="inputNativeCamera" accept="image/*" capture="environment" style="display:none" />
                     </div>
                 </div>
-
             </div>
 
             <select id="langSelect">
@@ -413,21 +390,20 @@
                 <span>텍스트 추출하기</span>
             </button>
             <div id="statusMessage" class="status"></div>
-        </div>
-
-        <div class="card">
-            <div class="result-header">
-                <div class="result-title">📝 추출 결과</div>
-                <button id="copyBtn" class="copy-btn">복사하기</button>
+            
+            <div class="card" style="margin-top: 0; flex:1; display:flex; flex-direction:column;">
+                <div class="result-header">
+                    <div class="result-title">📝 추출 결과</div>
+                    <button id="copyBtn" class="copy-btn">복사하기</button>
+                </div>
+                <div id="ocrText" class="result-box" style="flex:1;">결과가 여기에 표시됩니다.</div>
+    
+                <details>
+                    <summary>개발자용 원본 데이터 (JSON)</summary>
+                    <div id="ocrRaw"></div>
+                </details>
             </div>
-            <div id="ocrText" class="result-box">결과가 여기에 표시됩니다.</div>
-
-            <details>
-                <summary>개발자용 원본 데이터 (JSON)</summary>
-                <div id="ocrRaw"></div>
-            </details>
         </div>
-    </div>
     </div>
 
     <div id="cameraModal" class="modal-overlay">
@@ -443,5 +419,4 @@
     
     <script src="/static/script.js"></script>
 </body>
-
 </html>
