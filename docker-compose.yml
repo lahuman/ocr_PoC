@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  # 1. 메시지 브로커 (Redis)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # 2. API 서버 (FastAPI)
+  api:
+    build: .
+    command: uvicorn server:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - SENTRY_DSN=${SENTRY_DSN} # .env 파일에서 로드
+    depends_on:
+      - redis
+
+  # 3. OCR 워커 (Celery)
+  worker:
+    build: .
+    # 워커는 API와 같은 코드를 공유하지만 실행 명령어가 다름
+    command: celery -A tasks worker --loglevel=info --concurrency=2
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis

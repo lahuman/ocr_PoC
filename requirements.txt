@@ -12,3 +12,7 @@ numpy<2.0.0
 Pillow
 python-dateutil
 matplotlib
+# --- [추가됨] V1 업그레이드 ---
+celery>=5.3.0
+redis>=5.0.0
+sentry-sdk>=1.40.0

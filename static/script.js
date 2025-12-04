@@ -242,7 +242,7 @@ function processFile(file) {
             selection = { x: 0, y: 0, w: 0, h: 0 };
 
             redraw();
-            
+
             // 버튼 활성화 및 상태 초기화
             if (runOcrButton) runOcrButton.disabled = false;
             if (statusMessage) {
@@ -262,14 +262,14 @@ function processFile(file) {
 
 // 2) 파일 선택 이벤트 핸들러 (수정됨)
 function handleFileSelect(e) {
-  const file = e.target.files[0];
-  if (!file) return;
+    const file = e.target.files[0];
+    if (!file) return;
 
-  // 같은 파일을 다시 선택해도 이벤트가 발생하도록 값 초기화
-  e.target.value = '';
-  
-  // 공통 함수 호출
-  processFile(file);
+    // 같은 파일을 다시 선택해도 이벤트가 발생하도록 값 초기화
+    e.target.value = '';
+
+    // 공통 함수 호출
+    processFile(file);
 }
 // 1. 재미있는 대기 문구 30개 준비
 const loadingMessages = [
@@ -322,7 +322,7 @@ runOcrButton.addEventListener("click", async () => {
 
 
     statusMessage.textContent = "서버로 전송 중...";
-    
+
     // 2. 5초마다 랜덤 문구 변경
     msgTimer = setInterval(() => {
         const randomIndex = Math.floor(Math.random() * loadingMessages.length);
@@ -337,23 +337,49 @@ runOcrButton.addEventListener("click", async () => {
     formData.append("w", Math.round(finalSel.w));
     formData.append("h", Math.round(finalSel.h));
     formData.append("lang", langSelect.value);
-
     try {
+        // 1. 작업 등록 요청
         const res = await fetch(`${API_BASE}/api/ocr_region`, {
             method: "POST",
             body: formData
         });
+        const initialData = await res.json();
 
-        const data = await res.json();
+        if (!res.ok) throw new Error(initialData.detail || "요청 실패");
 
-        if (!res.ok) throw new Error(data.error || "서버 오류");
+        const taskId = initialData.task_id;
+        statusMessage.textContent = "분석 중입니다... (순서 대기 중)";
 
-        statusMessage.textContent = `완료! (${data.lang_label || data.lang})`;
-        statusMessage.className = "status success";
+        // 2. 결과가 나올 때까지 1초마다 상태 확인 (Polling)
+        const pollInterval = setInterval(async () => {
+            try {
+                const statusRes = await fetch(`${API_BASE}/api/ocr_status/${taskId}`);
+                const resultData = await statusRes.json();
 
-        ocrText.textContent = data.full_text || "(인식된 텍스트 없음)";
-        ocrRaw.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                if (resultData.status === "completed") {
+                    clearInterval(pollInterval); // 폴링 중단
+                    clearInterval(msgTimer);     // 문구 타이머 중단
 
+                    // 결과 표시
+                    statusMessage.textContent = "완료!";
+                    statusMessage.className = "status success";
+                    ocrText.textContent = resultData.full_text;
+                    ocrRaw.innerHTML = `<pre>${JSON.stringify(resultData, null, 2)}</pre>`;
+
+                    runOcrButton.disabled = false;
+                    loadingSpinner.style.display = "none";
+                }
+                else if (resultData.status === "failed") {
+                    throw new Error(resultData.error || "분석 실패");
+                }
+                // processing 상태면 계속 대기
+            } catch (err) {
+                clearInterval(pollInterval);
+                console.error(err);
+                statusMessage.textContent = "오류 발생";
+                runOcrButton.disabled = false;
+            }
+        }, 1000); // 1초 간격 확인
     } catch (err) {
         console.error(err);
         statusMessage.textContent = "에러: " + err.message;
